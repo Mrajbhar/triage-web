@@ -73,8 +73,14 @@ export default function Tickets() {
 
   return (
     <>
-      <h1 style={{ ...display, fontSize: 26, fontWeight: 600, letterSpacing: -0.5, marginBottom: 18 }}>Tickets</h1>
+      <div style={{ marginBottom: 18 }}>
+        <h1 style={{ ...display, fontSize: 28, fontWeight: 600, letterSpacing: -0.6 }}>Tickets</h1>
+        <p style={{ color: C.inkSoft, marginTop: 5, fontSize: 14.5 }}>
+          {state === "ready" ? `${tickets.length} ticket${tickets.length === 1 ? "" : "s"} in your workspace` : "Loading your queue…"}
+        </p>
+      </div>
 
+      {/* Status tabs */}
       <div className="flex gap-2" style={{ marginBottom: 14, flexWrap: "wrap" }}>
         {FILTERS.map((f) => {
           const active = f === filter;
@@ -92,6 +98,7 @@ export default function Tickets() {
         })}
       </div>
 
+      {/* Priority + sort controls */}
       <div className="flex items-center gap-2" style={{ marginBottom: 18, flexWrap: "wrap" }}>
         <SlidersHorizontal size={15} color={C.inkFaint} />
         <select value={priority} onChange={(e) => setPriority(e.target.value)} style={selectStyle}>
@@ -144,6 +151,7 @@ export default function Tickets() {
   );
 }
 
+// An empty screen is an invitation to act, not a dead end.
 function EmptyTickets({ filtered, onClear }) {
   return (
     <div style={{ padding: "52px 20px", textAlign: "center" }}>

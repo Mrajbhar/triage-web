@@ -16,7 +16,6 @@ export const C = {
   dangerSoft:"var(--danger-soft)",
 };
 
-// Keyed by lowercased API value so we can look up regardless of casing.
 export const PRIORITY = {
   urgent: { label: "Urgent", color: "#DC2626", bg: "#FCEBEB" },
   high:   { label: "High",   color: "#D97706", bg: "#FBF0DD" },

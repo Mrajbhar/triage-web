@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, Send, GitCommitHorizontal } from "lucide-react";
+import { ArrowLeft, Lock, Send, GitCommitHorizontal, AlertTriangle, Clock } from "lucide-react";
 import { getTicket, updateTicket, getComments, addComment, getEvents, getUsers } from "../api";
 import { C, display, body, STATUS, PRIORITY } from "../theme";
 import { Badge } from "../components/Primitives";
-import { initials } from "../lib/tickets";
+import { initials, slaInfo } from "../lib/tickets";
 import { useAuth } from "../context/AuthContext";
 import { useRealtime } from "../context/RealtimeContext";
 
@@ -26,13 +26,13 @@ export default function TicketDetail() {
   const { user } = useAuth();
 
   const canPostInternal = (user?.role || "").toLowerCase() !== "requester";
-  const canAssign = canPostInternal; 
+  const canAssign = canPostInternal;
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [events, setEvents] = useState([]);
   const [users, setUsers] = useState([]);
-  const [state, setState] = useState("loading"); 
+  const [state, setState] = useState("loading");
 
   const [draft, setDraft] = useState("");
   const [isInternal, setIsInternal] = useState(false);
@@ -57,7 +57,7 @@ export default function TicketDetail() {
   const changeStatus = async (status) => {
     const updated = await updateTicket(id, { status });
     setTicket(updated);
-    getEvents(id).then(setEvents); 
+    getEvents(id).then(setEvents);
   };
 
   const changeAssignee = async (assigneeId) => {
@@ -85,170 +85,177 @@ export default function TicketDetail() {
 
   const s = STATUS[(ticket.status || "").toLowerCase()] ?? STATUS.open;
   const p = PRIORITY[(ticket.priority || "").toLowerCase()] ?? PRIORITY.medium;
+  const sla = slaInfo(ticket);
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto" }}>
-      <button
-        onClick={() => navigate("/tickets")}
-        className="flex items-center gap-2"
-        style={{ border: "none", background: "transparent", color: C.inkSoft, fontSize: 14, cursor: "pointer", marginBottom: 18, ...body }}
-      >
+    <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+      <button onClick={() => navigate("/tickets")} className="flex items-center gap-2 press"
+              style={{ border: "none", background: "transparent", color: C.inkSoft, fontSize: 14, cursor: "pointer", marginBottom: 16, ...body }}>
         <ArrowLeft size={16} /> Back to tickets
       </button>
 
-      {/* Ticket header */}
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 24, marginBottom: 22 }}>
-        <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
-          <Badge {...s} />
-          <Badge {...p} />
-        </div>
-        <h1 style={{ ...display, fontSize: 24, fontWeight: 600, letterSpacing: -0.4, marginBottom: 14 }}>
-          {ticket.subject}
-        </h1>
-
-        <div className="flex flex-wrap gap-x-8 gap-y-2" style={{ fontSize: 13.5, color: C.inkSoft }}>
-          <Meta label="Requester" value={ticket.requester} />
-          <Meta label="Assignee" value={ticket.assignee || "Unassigned"} />
-          <Meta label="Opened" value={timeAgo(ticket.createdAt)} />
-        </div>
-
-        {/* Status changer (uses the PATCH endpoint) */}
-        <div style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${C.lineSoft}` }}>
-          <span style={{ fontSize: 13, fontWeight: 600, marginRight: 10 }}>Status</span>
-          {STATUSES.map((st) => {
-            const active = st.toLowerCase() === (ticket.status || "").toLowerCase();
-            return (
-              <button
-                key={st}
-                onClick={() => changeStatus(st)}
-                style={{
-                  marginRight: 8, padding: "6px 13px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer",
-                  border: `1.5px solid ${active ? C.brand : C.line}`,
-                  background: active ? C.brandSoft : C.surface,
-                  color: active ? C.brandDark : C.inkSoft, ...body,
-                }}
-              >
-                {st}
-              </button>
-            );
-          })}
-        </div>
-
-        {canAssign && (
-          <div style={{ marginTop: 14 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, marginRight: 10 }}>Assignee</span>
-            <select
-              value={ticket.assigneeId || ""}
-              onChange={(e) => changeAssignee(e.target.value)}
-              style={{
-                padding: "7px 12px", borderRadius: 8, fontSize: 13.5, fontWeight: 500,
-                border: `1.5px solid ${C.line}`, background: C.surface, color: C.ink, cursor: "pointer", ...body,
-              }}
-            >
-              <option value="" disabled>Select an agent…</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>
-              ))}
-            </select>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left: header + activity + composer */}
+        <div className="lg:col-span-2">
+          {/* Header card */}
+          <div style={{ position: "relative", overflow: "hidden", background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 24, marginBottom: 20 }}>
+            <div aria-hidden style={{ position: "absolute", top: -30, right: -30, width: 110, height: 110, borderRadius: "50%", background: sla.breaching ? "#DC2626" : C.brand, opacity: 0.07 }} />
+            <div className="flex items-center gap-2" style={{ marginBottom: 10, position: "relative" }}>
+              <Badge {...s} />
+              <Badge {...p} />
+              {sla.breaching && (
+                <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 600, color: C.danger, background: C.dangerSoft, padding: "3px 10px", borderRadius: 20 }}>
+                  <AlertTriangle size={12} /> {sla.label}
+                </span>
+              )}
+            </div>
+            <h1 style={{ ...display, fontSize: 24, fontWeight: 600, letterSpacing: -0.4, position: "relative" }}>{ticket.subject}</h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1" style={{ marginTop: 10, fontSize: 13, color: C.inkFaint, position: "relative" }}>
+              <span>Opened by <strong style={{ color: C.inkSoft, fontWeight: 600 }}>{ticket.requester}</strong></span>
+              <span>·</span>
+              <span>{timeAgo(ticket.createdAt)}</span>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Activity feed (comments + audit events, interleaved) */}
-      <h2 style={{ ...display, fontSize: 18, fontWeight: 600, marginBottom: 14 }}>Activity</h2>
+          {/* Activity timeline */}
+          <h2 style={{ ...display, fontSize: 17, fontWeight: 600, marginBottom: 14 }}>Activity</h2>
+          <div style={{ position: "relative", marginBottom: 20 }}>
+            {feed.length > 1 && (
+              <div aria-hidden style={{ position: "absolute", left: 15, top: 12, bottom: 12, width: 2, background: C.lineSoft }} />
+            )}
+            <div className="flex flex-col gap-3">
+              {feed.length === 0 && (
+                <div style={{ color: C.inkFaint, fontSize: 14 }}>No activity yet. Start the conversation below.</div>
+              )}
+              {feed.map((item) =>
+                item.kind === "comment"
+                  ? <CommentItem key={`c-${item.data.id}`} c={item.data} />
+                  : <EventItem key={`e-${item.data.id}`} e={item.data} />
+              )}
+            </div>
+          </div>
 
-      <div className="flex flex-col gap-3" style={{ marginBottom: 22 }}>
-        {feed.length === 0 && (
-          <div style={{ color: C.inkFaint, fontSize: 14 }}>No activity yet. Start the conversation below.</div>
-        )}
-        {feed.map((item) =>
-          item.kind === "comment"
-            ? <CommentCard key={`c-${item.data.id}`} c={item.data} />
-            : <EventLine key={`e-${item.data.id}`} e={item.data} />
-        )}
-      </div>
+          {/* Composer */}
+          <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={isInternal ? "Write an internal note (only agents see this)…" : "Write a reply…"}
+              rows={3}
+              style={{ width: "100%", border: "none", outline: "none", resize: "vertical", fontSize: 14, ...body, color: C.ink, background: "transparent", boxSizing: "border-box" }}
+            />
+            <div className="flex items-center justify-between" style={{ marginTop: 8 }}>
+              {canPostInternal ? (
+                <label className="flex items-center gap-2" style={{ fontSize: 13, color: C.inkSoft, cursor: "pointer" }}>
+                  <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} style={{ accentColor: C.brand }} />
+                  Internal note
+                </label>
+              ) : <span />}
+              <button onClick={submitComment} disabled={sending || !draft.trim()}
+                      className="flex items-center gap-2 press"
+                      style={{ padding: "9px 16px", borderRadius: 9, border: "none",
+                               background: !draft.trim() ? C.line : C.brand, color: !draft.trim() ? C.inkFaint : "#fff",
+                               fontSize: 14, fontWeight: 600, cursor: !draft.trim() ? "default" : "pointer", ...body }}>
+                <Send size={15} /> {sending ? "Sending…" : "Send"}
+              </button>
+            </div>
+          </div>
+        </div>
 
-      {/* New comment */}
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: 16 }}>
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={isInternal ? "Write an internal note (only agents see this)…" : "Write a reply…"}
-          rows={3}
-          style={{ width: "100%", border: "none", outline: "none", resize: "vertical", fontSize: 14, ...body, color: C.ink, background: "transparent", boxSizing: "border-box" }}
-        />
-        <div className="flex items-center justify-between" style={{ marginTop: 8 }}>
-          {canPostInternal ? (
-            <label className="flex items-center gap-2" style={{ fontSize: 13, color: C.inkSoft, cursor: "pointer" }}>
-              <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} style={{ accentColor: C.brand }} />
-              Internal note
-            </label>
-          ) : <span />}
-          <button
-            onClick={submitComment}
-            disabled={sending || !draft.trim()}
-            className="flex items-center gap-2"
-            style={{
-              padding: "9px 16px", borderRadius: 9, border: "none",
-              background: !draft.trim() ? C.line : C.brand,
-              color: !draft.trim() ? C.inkFaint : "#fff",
-              fontSize: 14, fontWeight: 600, cursor: !draft.trim() ? "default" : "pointer", ...body,
-            }}
-          >
-            <Send size={15} /> {sending ? "Sending…" : "Send"}
-          </button>
+        {/* Right: details sidebar */}
+        <div>
+          <div style={{ position: "sticky", top: 0, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+            <h2 style={{ ...display, fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Details</h2>
+
+            <SideLabel>Status</SideLabel>
+            <div className="flex flex-col gap-2" style={{ marginBottom: 18 }}>
+              {STATUSES.map((st) => {
+                const active = st.toLowerCase() === (ticket.status || "").toLowerCase();
+                return (
+                  <button key={st} onClick={() => changeStatus(st)} className="press"
+                          style={{ textAlign: "left", padding: "8px 12px", borderRadius: 9, fontSize: 13.5, fontWeight: 600, cursor: "pointer",
+                                   border: `1.5px solid ${active ? C.brand : C.line}`,
+                                   background: active ? C.brandSoft : C.surface,
+                                   color: active ? C.brandDark : C.inkSoft, ...body }}>
+                    {st}
+                  </button>
+                );
+              })}
+            </div>
+
+            {canAssign && (
+              <div style={{ marginBottom: 18 }}>
+                <SideLabel>Assignee</SideLabel>
+                <select value={ticket.assigneeId || ""} onChange={(e) => changeAssignee(e.target.value)}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: 9, fontSize: 13.5, fontWeight: 500,
+                                 border: `1.5px solid ${C.line}`, background: C.surface, color: C.ink, cursor: "pointer", ...body }}>
+                  <option value="" disabled>Select an agent…</option>
+                  {users.map((u) => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
+                </select>
+              </div>
+            )}
+
+            <div style={{ borderTop: `1px solid ${C.lineSoft}`, paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+              <Meta label="Requester" value={ticket.requester} />
+              {!canAssign && <Meta label="Assignee" value={ticket.assignee || "Unassigned"} />}
+              <Meta label="SLA" value={sla.label} icon={Clock} danger={sla.breaching} />
+              <Meta label="Opened" value={timeAgo(ticket.createdAt)} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function CommentCard({ c }) {
+function CommentItem({ c }) {
   return (
-    <div style={{
-      background: c.isInternal ? "#FBF6E9" : C.surface,
-      border: `1px solid ${c.isInternal ? "#EBDCB6" : C.line}`,
-      borderRadius: 12, padding: "14px 16px",
-    }}>
-      <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
-        <div className="flex items-center justify-center"
-             style={{ width: 26, height: 26, borderRadius: "50%", background: C.panel, color: "#fff", fontSize: 11, fontWeight: 600 }}>
-          {initials(c.author)}
-        </div>
-        <span style={{ fontSize: 13.5, fontWeight: 600 }}>{c.author}</span>
-        {c.isInternal && (
-          <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "#B45309", background: "#F6E9C8", padding: "1px 8px", borderRadius: 20 }}>
-            <Lock size={11} /> Internal
-          </span>
-        )}
-        <span style={{ fontSize: 12, color: C.inkFaint, marginLeft: "auto" }}>{timeAgo(c.createdAt)}</span>
+    <div className="flex gap-3" style={{ position: "relative" }}>
+      <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: "50%", background: C.panel, color: "#fff", fontSize: 12, fontWeight: 600, flexShrink: 0, zIndex: 1 }}>
+        {initials(c.author)}
       </div>
-      <div style={{ fontSize: 14, lineHeight: 1.5, color: C.ink, whiteSpace: "pre-wrap" }}>{c.body}</div>
+      <div style={{ flex: 1, minWidth: 0, background: c.isInternal ? "#FBF6E9" : C.surface,
+                    border: `1px solid ${c.isInternal ? "#EBDCB6" : C.line}`, borderRadius: 12, padding: "12px 15px" }}>
+        <div className="flex items-center gap-2" style={{ marginBottom: 5 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 600, color: C.ink }}>{c.author}</span>
+          {c.isInternal && (
+            <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "#B45309", background: "#F6E9C8", padding: "1px 8px", borderRadius: 20 }}>
+              <Lock size={11} /> Internal
+            </span>
+          )}
+          <span style={{ fontSize: 12, color: C.inkFaint, marginLeft: "auto" }}>{timeAgo(c.createdAt)}</span>
+        </div>
+        <div style={{ fontSize: 14, lineHeight: 1.5, color: C.ink, whiteSpace: "pre-wrap" }}>{c.body}</div>
+      </div>
     </div>
   );
 }
 
-function EventLine({ e }) {
+function EventItem({ e }) {
   return (
-    <div className="flex items-center gap-3" style={{ padding: "2px 6px", color: C.inkSoft, fontSize: 13 }}>
-      <div className="flex items-center justify-center"
-           style={{ width: 26, height: 26, borderRadius: "50%", background: C.lineSoft, color: C.inkFaint, flexShrink: 0 }}>
+    <div className="flex items-center gap-3" style={{ position: "relative" }}>
+      <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: "50%", background: C.bg, border: `1px solid ${C.line}`, color: C.inkFaint, flexShrink: 0, zIndex: 1 }}>
         <GitCommitHorizontal size={14} />
       </div>
-      <span>
-        <strong style={{ color: C.ink, fontWeight: 600 }}>{e.actor}</strong>
-        {" — "}{e.detail || e.eventType}
-      </span>
-      <span style={{ marginLeft: "auto", fontSize: 12, color: C.inkFaint }}>{timeAgo(e.createdAt)}</span>
+      <div className="flex items-center" style={{ flex: 1, minWidth: 0, fontSize: 13, color: C.inkSoft, gap: 8 }}>
+        <span><strong style={{ color: C.ink, fontWeight: 600 }}>{e.actor}</strong> {e.detail || e.eventType}</span>
+        <span style={{ marginLeft: "auto", fontSize: 12, color: C.inkFaint, flexShrink: 0 }}>{timeAgo(e.createdAt)}</span>
+      </div>
     </div>
   );
 }
 
-function Meta({ label, value }) {
+function SideLabel({ children }) {
+  return <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: C.inkFaint, fontWeight: 600, marginBottom: 8 }}>{children}</div>;
+}
+
+function Meta({ label, value, icon: Icon, danger }) {
   return (
     <div>
-      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4, color: C.inkFaint, marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 13.5, fontWeight: 500, color: C.ink }}>{value}</div>
+      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4, color: C.inkFaint, marginBottom: 3 }}>{label}</div>
+      <div className="flex items-center gap-1.5" style={{ fontSize: 13.5, fontWeight: 500, color: danger ? C.danger : C.ink }}>
+        {Icon && <Icon size={13} />} {value}
+      </div>
     </div>
   );
 }

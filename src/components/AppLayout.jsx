@@ -11,7 +11,7 @@ import { initials } from "../lib/tickets";
 import { useKeyboardShortcuts } from "../lib/useKeyboardShortcuts";
 import NewTicketModal from "./NewTicketModal";
 import Toasts from "./Toasts";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./Notificationbell";
 import GlobalSearch from "./GlobalSearch";
 
 const NAV = [
@@ -21,9 +21,7 @@ const NAV = [
   { to: "/settings", label: "Settings",  icon: Settings },
 ];
 
-// Square icon-button shared by the topbar controls. Note: NO `display` here —
-// the flex/centering comes from classes, so responsive classes like md:hidden
-// can still take effect (inline display would override them).
+
 const iconBtn = {
   width: 38, height: 38, borderRadius: 10, border: `1px solid ${C.line}`,
   background: C.surface, cursor: "pointer", color: C.inkSoft, flexShrink: 0,
@@ -99,13 +97,11 @@ export default function AppLayout() {
 
   return (
     <div className="flex" style={{ minHeight: "100vh", background: C.bg, ...body, color: C.ink }}>
-      {/* Desktop sidebar — hidden on mobile, flex column on md+ */}
       <aside className="hidden md:flex flex-col"
              style={{ width: 232, background: C.surface, borderRight: `1px solid ${C.line}`, padding: "20px 14px" }}>
         <SidebarInner user={user} signOut={signOut} />
       </aside>
 
-      {/* Mobile drawer — only mounted when open, hidden on md+ */}
       {drawerOpen && (
         <div className="md:hidden" style={{ position: "fixed", inset: 0, zIndex: 60 }}>
           <div className="overlay-in" onClick={() => setDrawerOpen(false)}
@@ -119,12 +115,10 @@ export default function AppLayout() {
         </div>
       )}
 
-      {/* Main column */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header className="flex items-center justify-between"
                 style={{ padding: "14px 16px", background: C.surface, borderBottom: `1px solid ${C.line}`, gap: 12 }}>
           <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0 }}>
-            {/* Hamburger — flex/centering via classes so md:hidden can hide it on desktop */}
             <button onClick={() => setDrawerOpen(true)}
                     className="md:hidden flex items-center justify-center press"
                     style={iconBtn}>
@@ -146,7 +140,6 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* key on pathname re-triggers the fade on route change */}
         <div key={location.pathname} style={{ flex: 1, padding: "clamp(16px, 4vw, 28px)", overflow: "auto" }}>
           <div className="fade-in"><Outlet /></div>
         </div>

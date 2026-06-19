@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { HubConnectionBuilder, LogLevel, HubConnectionState } from "@microsoft/signalr";
 import { useAuth } from "./AuthContext";
+import { getToken } from "../lib/tokenStorage";
 
 const RealtimeContext = createContext(null);
 
@@ -15,8 +16,8 @@ export function RealtimeProvider({ children }) {
 
     const conn = new HubConnectionBuilder()
       .withUrl(`${import.meta.env.VITE_API_URL}/hubs/tickets`, {
-       
-        accessTokenFactory: () => sessionStorage.getItem("triage_token") || "",
+        
+        accessTokenFactory: () => getToken() || "",
       })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.Warning)
@@ -63,6 +64,7 @@ export function useRealtime(handler) {
   }, [ctx]);
 }
 
+// Read-only live connection status for indicators.
 export function useRealtimeStatus() {
   const ctx = useContext(RealtimeContext);
   return ctx?.connected ?? false;

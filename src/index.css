@@ -1,7 +1,9 @@
+/* @import rules must come first, before any other CSS. */
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 * { box-sizing: border-box; }
+
 
 :root {
   --bg: #F7F6F2;
@@ -120,3 +122,29 @@ button { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+@keyframes floatA { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(34px,-26px) scale(1.1); } }
+@keyframes floatB { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-28px,22px) scale(1.12); } }
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(56px);
+  opacity: .55;
+  pointer-events: none;
+}
+
+.glass {
+  background: rgba(255,255,255,.08);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.16);
+}
+
+.btn-brand {
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  box-shadow: 0 10px 30px -10px rgba(15,118,110,.55);
+  transition: filter .15s ease, transform .12s ease, box-shadow .18s ease;
+}
+.btn-brand:hover  { filter: brightness(1.06); }
+.btn-brand:active { transform: translateY(1px); }

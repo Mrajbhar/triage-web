@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from "react";
+import { saveToken, getToken, clearToken } from "../lib/tokenStorage";
 
 const AuthContext = createContext(null);
 
@@ -21,9 +22,9 @@ function decodeJwt(token) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => sessionStorage.getItem("triage_token"));
+  const [token, setToken] = useState(() => getToken());
 
- 
+  
   const user = useMemo(() => {
     if (!token) return null;
     const c = decodeJwt(token);
@@ -38,13 +39,14 @@ export function AuthProvider({ children }) {
     };
   }, [token]);
 
-  const signIn = (jwt) => {
-    sessionStorage.setItem("triage_token", jwt);
+  // remember = true keeps the session after the browser closes.
+  const signIn = (jwt, remember = false) => {
+    saveToken(jwt, remember);
     setToken(jwt);
   };
 
   const signOut = () => {
-    sessionStorage.removeItem("triage_token");
+    clearToken();
     setToken(null);
   };
 

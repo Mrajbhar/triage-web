@@ -1,7 +1,7 @@
-import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, Eye, EyeOff } from "lucide-react";
 import { C, STATUS, PRIORITY, body } from "../theme";
 
-// Small coloured pill used for status and priority.
 export function Badge({ label, color, bg }) {
   return (
     <span
@@ -15,10 +15,8 @@ export function Badge({ label, color, bg }) {
   );
 }
 
-// Labelled form field wrapper.
 export function Field({ label, children }) {
-  return (
-    <div style={{ marginBottom: 16 }}>
+  return (    <div style={{ marginBottom: 16 }}>
       <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 7 }}>
         {label}
       </label>
@@ -35,10 +33,9 @@ export const inputStyle = {
   transition: "border-color .15s",
 };
 
-// Dashboard summary card.
 export function StatCard({ icon: Icon, label, value, tint, bg }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "16px 18px" }}>
+    <div className="lift" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "16px 18px" }}>
       <div className="flex items-center justify-center"
            style={{ width: 36, height: 36, borderRadius: 10, background: bg, marginBottom: 12 }}>
         <Icon size={18} color={tint} />
@@ -51,14 +48,13 @@ export function StatCard({ icon: Icon, label, value, tint, bg }) {
   );
 }
 
-// A single ticket row. `t` is normalised in Dashboard before being passed in.
 export function TicketRow({ t, last, onClick }) {
   const s = STATUS[t.statusKey] ?? STATUS.open;
   const p = PRIORITY[t.priorityKey] ?? PRIORITY.medium;
   return (
     <div
       onClick={onClick}
-      className="lg:grid items-center"
+      className="lg:grid items-center row-hover"
       style={{
         gridTemplateColumns: "1fr 130px 110px 130px 120px 24px", gap: 12,
         padding: "14px 20px", borderBottom: last ? "none" : `1px solid ${C.lineSoft}`,
@@ -88,6 +84,52 @@ export function TicketRow({ t, last, onClick }) {
         {t.sla}
       </div>
       <div className="flex justify-end"><ChevronRight size={16} color={C.inkFaint} /></div>
+    </div>
+  );
+}
+
+
+export function PasswordInput({ value, onChange, onKeyDown, placeholder, name, autoComplete }) {
+  const [show, setShow] = useState(false);
+  const [caps, setCaps] = useState(false);
+
+  const checkCaps = (e) => {
+    if (e.getModifierState) setCaps(e.getModifierState("CapsLock"));
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        onKeyUp={checkCaps}
+        onBlur={(e) => { setCaps(false); e.target.style.borderColor = C.line; }}
+        onFocus={(e) => (e.target.style.borderColor = C.brand)}
+        name={name}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        style={{ ...inputStyle, paddingRight: 42 }}
+      />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShow((s) => !s)}
+        title={show ? "Hide password" : "Show password"}
+        style={{
+          position: "absolute", right: 8, top: 9, width: 30, height: 30, borderRadius: 7,
+          border: "none", background: "transparent", cursor: "pointer", color: C.inkFaint,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+      {caps && (
+        <div style={{ fontSize: 12, color: "#B45309", marginTop: 6 }}>
+          Caps Lock is on
+        </div>
+      )}
     </div>
   );
 }

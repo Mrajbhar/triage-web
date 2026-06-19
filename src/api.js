@@ -1,23 +1,21 @@
 import axios from "axios";
+import { getToken, clearToken } from "./lib/tokenStorage";
 
-// One axios instance for the whole app. baseURL comes from .env (VITE_API_URL).
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Attach the JWT to every outgoing request, if we have one.
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("triage_token");
+  const token = getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// If the token is rejected (expired / invalid), clear it and bounce to login.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      sessionStorage.removeItem("triage_token");
+      clearToken();
       if (window.location.pathname !== "/login") window.location.assign("/login");
     }
     return Promise.reject(err);
@@ -41,7 +39,6 @@ export const getUsers = () =>
 export const createUser = (payload) =>
   api.post("/api/auth/users", payload).then((r) => r.data);
 
-// --- SLA policies ----------------------------------------------------------
 export const getSlaPolicies = () =>
   api.get("/api/slapolicies").then((r) => r.data);
 
