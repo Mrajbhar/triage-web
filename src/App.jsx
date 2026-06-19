@@ -6,8 +6,8 @@ import AppLayout from "./components/AppLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Tickets from "./pages/Tickets";
-import TicketDetail from "./pages/TicketDetail";
+import Tickets from "./pages/tickets";
+import TicketDetail from "./pages/Ticketdetail";
 import People from "./pages/People";
 import Settings from "./pages/Settings";
 
