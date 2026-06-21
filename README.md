@@ -284,6 +284,72 @@ A natural fit for .NET. Outline:
 
 ---
 
+## Demo Access
+
+## Demo Access
+
+To help recruiters and interviewers evaluate the application quickly, demo accounts are provided below.
+
+> **Note:** The backend API is hosted on Render Free Tier. The first request may take 30-60 seconds to wake up the server.
+
+### Live Demo
+
+Frontend: https://triage-web-ashy.vercel.app
+
+Backend API: https://triage-api-h80s.onrender.com
+
+---
+
+### Admin Demo
+
+Email: `admin@demo.com`
+
+Password: `Demo@123`
+
+The Admin account can:
+
+* Manage users
+* Configure SLA policies
+* View all tickets
+* Assign tickets
+* Access dashboard analytics
+* Monitor escalations and audit logs
+
+---
+
+### Agent Demo
+
+Email: `agent@demo.com`
+
+Password: `Demo@123`
+
+The Agent account can:
+
+* View assigned tickets
+* Update ticket status
+* Add public replies and internal notes
+* Receive real-time notifications
+
+---
+
+### Requester Demo
+
+Email: `requester@demo.com`
+
+Password: `Demo@123`
+
+The Requester account can:
+
+* Create support tickets
+* View only their own tickets
+* Reply to tickets
+* Track ticket progress in real time
+
+---
+
+> Demo data may be reset periodically to maintain a clean evaluation environment.
+
+
 ## Possible next steps
 
 - Persist notifications server-side so the bell survives a refresh.
