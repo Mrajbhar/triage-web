@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { C, display, body, STATUS, PRIORITY } from "../theme";
 import { Badge } from "../components/Primitives";
 import { normalise } from "../lib/tickets";
-import TicketDetail from "./TicketDetail";
+import TicketDetail from "./Ticketdetail";
 
 const PAGE_SIZE = 20;
 const SORTS = [
@@ -94,11 +94,9 @@ export default function TicketsWorkspace() {
     }
   }, [view, isAgent, sort, priority]);
 
-  // Reload page 1 whenever the view / filter / sort changes.
   useEffect(() => { fetchPage(1, true); }, [fetchPage]);
   useEffect(() => { loadCounts(); }, [loadCounts]);
 
-  // Live updates: refresh the current view's first page and the chip counts.
   useRealtime(() => { fetchPage(1, true); loadCounts(); });
 
   const hasMore = items.length < total;

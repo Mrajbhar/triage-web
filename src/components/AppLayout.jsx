@@ -11,7 +11,7 @@ import { initials } from "../lib/tickets";
 import { useKeyboardShortcuts } from "../lib/useKeyboardShortcuts";
 import NewTicketModal from "./NewTicketModal";
 import Toasts from "./Toasts";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./Notificationbell";
 import GlobalSearch from "./GlobalSearch";
 import CommandPalette from "./CommandPalette";
 
