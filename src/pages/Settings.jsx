@@ -4,9 +4,11 @@ import { C, display, body } from "../theme";
 
 function Row({ label, value, mono }) {
   return (
-    <div className="flex items-center justify-between" style={{ padding: "13px 18px", borderBottom: `1px solid ${C.lineSoft}` }}>
-      <span style={{ fontSize: 13.5, color: C.inkSoft }}>{label}</span>
-      <span style={{ fontSize: mono ? 12.5 : 14, fontWeight: mono ? 400 : 600, color: mono ? C.inkFaint : C.ink, fontFamily: mono ? "ui-monospace, monospace" : undefined }}>
+    <div className="flex items-center justify-between" style={{ padding: "13px 18px", borderBottom: `1px solid ${C.lineSoft}`, gap: 16 }}>
+      <span style={{ fontSize: 13.5, color: C.inkSoft, whiteSpace: "nowrap", flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: mono ? 12 : 14, fontWeight: mono ? 400 : 600, color: mono ? C.inkFaint : C.ink,
+                     fontFamily: mono ? "ui-monospace, monospace" : undefined,
+                     textAlign: "right", wordBreak: mono ? "break-all" : "normal", minWidth: 0 }}>
         {value || "—"}
       </span>
     </div>

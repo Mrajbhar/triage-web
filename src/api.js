@@ -58,6 +58,13 @@ export const deleteSlaPolicy = (id) =>
 export const getTickets = () =>
   api.get("/api/tickets").then((r) => r.data);
 
+// Paged list for the tickets workspace. Pass { page, pageSize, view filters, sort }.
+export const getTicketsPaged = (params) =>
+  api.get("/api/tickets", { params }).then((r) => r.data);
+
+export const getTicketCounts = () =>
+  api.get("/api/tickets/counts").then((r) => r.data);
+
 export const getTicketStats = () =>
   api.get("/api/tickets/stats").then((r) => r.data);
 

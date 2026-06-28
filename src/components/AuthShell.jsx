@@ -1,9 +1,7 @@
 import { Ticket, ShieldCheck, Zap, Clock } from "lucide-react";
 import { C, display, body } from "../theme";
 
-// Modern split auth layout: an animated gradient-mesh panel with floating glow
-// orbs and a frosted-glass product preview on the left, a clean form on the
-// right. Shared by Login and Register.
+
 export default function AuthShell({
   title, subtitle, children, switcher,
   headline = "Every request,\nresolved on time.",
@@ -11,7 +9,7 @@ export default function AuthShell({
 }) {
   return (
     <div className="flex" style={{ minHeight: "100vh", background: C.bg, color: C.ink, ...body }}>
-      {/* Left — rich brand panel (desktop only) */}
+     
       <aside className="hidden lg:flex flex-col justify-between"
         style={{
           position: "relative", width: "52%", overflow: "hidden", padding: "48px 52px", color: "#fff",
@@ -32,7 +30,7 @@ export default function AuthShell({
           <span style={{ ...display, fontSize: 20, fontWeight: 600, letterSpacing: -0.3 }}>Triage</span>
         </div>
 
-        {/* Headline + glass preview */}
+        
         <div style={{ position: "relative" }}>
           <div style={{ ...display, fontSize: 42, fontWeight: 600, lineHeight: 1.08, letterSpacing: -1, whiteSpace: "pre-line" }}>
             {headline}

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
-  Inbox, LayoutDashboard, Ticket, Users, Settings, LogOut, Plus, Menu, Sun, Moon, BarChart3, Timer,
+  Inbox, LayoutDashboard, Ticket, Users, Settings, LogOut, Plus, Menu, Sun, Moon, BarChart3, Timer, Command,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -13,6 +13,7 @@ import NewTicketModal from "./NewTicketModal";
 import Toasts from "./Toasts";
 import NotificationBell from "./NotificationBell";
 import GlobalSearch from "./GlobalSearch";
+import CommandPalette from "./CommandPalette";
 
 const ALL = ["admin", "agent", "requester"];
 const NAV_GROUPS = [
@@ -28,15 +29,13 @@ const NAV_GROUPS = [
   ]},
 ];
 
-// Square icon-button shared by the topbar controls. Note: NO `display` here —
-// the flex/centering comes from classes, so responsive classes like md:hidden
-// can still take effect (inline display would override them).
+
 const iconBtn = {
   width: 38, height: 38, borderRadius: 10, border: `1px solid ${C.line}`,
   background: C.surface, cursor: "pointer", color: C.inkSoft, flexShrink: 0,
 };
 
-// Sidebar contents shared by the desktop rail and the mobile drawer.
+
 function SidebarInner({ user, signOut, onNavigate }) {
   const connected = useRealtimeStatus();
   const role = (user?.role || "").toLowerCase();
@@ -96,7 +95,7 @@ function SidebarInner({ user, signOut, onNavigate }) {
         </button>
       </div>
 
-      {/* App version + live connection status (not a marketing footer). */}
+     
       <div className="flex items-center" style={{ gap: 7, padding: "8px 10px 2px", fontSize: 11.5, color: C.inkFaint }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
                        background: connected ? "#16A34A" : C.inkFaint,
@@ -115,18 +114,31 @@ export default function AppLayout() {
   const location = useLocation();
   const [showNew, setShowNew] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
 
   useKeyboardShortcuts({ onNewTicket: () => setShowNew(true) });
 
+ 
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setShowPalette((s) => !s);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex" style={{ minHeight: "100vh", background: C.bg, ...body, color: C.ink }}>
-      {/* Desktop sidebar — hidden on mobile, flex column on md+ */}
+     
       <aside className="hidden md:flex flex-col"
              style={{ width: 232, background: C.surface, borderRight: `1px solid ${C.line}`, padding: "20px 14px" }}>
         <SidebarInner user={user} signOut={signOut} />
       </aside>
 
-      {/* Mobile drawer — only mounted when open, hidden on md+ */}
+      
       {drawerOpen && (
         <div className="md:hidden" style={{ position: "fixed", inset: 0, zIndex: 60 }}>
           <div className="overlay-in" onClick={() => setDrawerOpen(false)}
@@ -140,12 +152,12 @@ export default function AppLayout() {
         </div>
       )}
 
-      {/* Main column */}
+      
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header className="flex items-center justify-between"
                 style={{ padding: "14px 16px", background: C.surface, borderBottom: `1px solid ${C.line}`, gap: 12 }}>
           <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0 }}>
-            {/* Hamburger — flex/centering via classes so md:hidden can hide it on desktop */}
+            
             <button onClick={() => setDrawerOpen(true)}
                     className="md:hidden flex items-center justify-center press"
                     style={iconBtn}>
@@ -155,6 +167,13 @@ export default function AppLayout() {
           </div>
 
           <div className="flex items-center gap-3" style={{ flexShrink: 0 }}>
+            <button onClick={() => setShowPalette(true)} title="Command palette (⌘K)"
+                    className="hidden sm:flex items-center gap-2 press"
+                    style={{ height: 38, padding: "0 10px", borderRadius: 10, border: `1px solid ${C.line}`,
+                             background: C.surface, cursor: "pointer", color: C.inkFaint, ...body }}>
+              <Command size={15} />
+              <span style={{ fontSize: 12, fontWeight: 600 }}>K</span>
+            </button>
             <button onClick={toggle} title={theme === "dark" ? "Light mode" : "Dark mode"}
                     className="flex items-center justify-center press" style={iconBtn}>
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -167,15 +186,20 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* key on pathname re-triggers the fade on route change */}
-        {/* key by section (first path segment) so navigating between tickets
-            within the workspace doesn't remount the list pane */}
+      
         <div key={location.pathname.split("/")[1] || "home"} style={{ flex: 1, padding: "clamp(16px, 4vw, 28px)", overflow: "auto" }}>
           <div className="fade-in"><Outlet /></div>
         </div>
       </main>
 
       <Toasts />
+
+      {showPalette && (
+        <CommandPalette
+          onClose={() => setShowPalette(false)}
+          onNewTicket={() => { setShowPalette(false); setShowNew(true); }}
+        />
+      )}
 
       {showNew && (
         <NewTicketModal onClose={() => setShowNew(false)} onCreated={() => navigate("/tickets")} />

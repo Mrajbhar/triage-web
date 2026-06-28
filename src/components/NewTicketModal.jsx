@@ -3,11 +3,13 @@ import { X } from "lucide-react";
 import { createTicket } from "../api";
 import { C, display, body } from "../theme";
 import { Field, inputStyle } from "./Primitives";
+import { useModalA11y } from "../lib/useModalA11y";
 
 const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
 
 // Modal for creating a ticket. Calls onCreated() so the dashboard can refresh.
 export default function NewTicketModal({ onClose, onCreated }) {
+  const dialogRef = useModalA11y(onClose);
   const [subject, setSubject] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [error, setError] = useState(null);
@@ -31,18 +33,24 @@ export default function NewTicketModal({ onClose, onCreated }) {
   return (
     <div
       onClick={onClose}
+      className="overlay-in"
       style={{
         position: "fixed", inset: 0, background: "rgba(15,17,23,.45)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 50,
       }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-ticket-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()} className="scale-in"
         style={{ width: "100%", maxWidth: 440, background: C.surface, borderRadius: 16, padding: 24, ...body }}
       >
         <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
-          <h2 style={{ ...display, fontSize: 19, fontWeight: 600, color: C.ink }}>New ticket</h2>
-          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: C.inkFaint }}>
+          <h2 id="new-ticket-title" style={{ ...display, fontSize: 19, fontWeight: 600, color: C.ink }}>New ticket</h2>
+          <button onClick={onClose} aria-label="Close" style={{ border: "none", background: "transparent", cursor: "pointer", color: C.inkFaint }}>
             <X size={18} />
           </button>
         </div>
