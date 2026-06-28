@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
-  Inbox, LayoutDashboard, Ticket, Users, Settings, LogOut, Plus, Menu, Sun, Moon,
+  Inbox, LayoutDashboard, Ticket, Users, Settings, LogOut, Plus, Menu, Sun, Moon, BarChart3, Timer,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -11,17 +11,26 @@ import { initials } from "../lib/tickets";
 import { useKeyboardShortcuts } from "../lib/useKeyboardShortcuts";
 import NewTicketModal from "./NewTicketModal";
 import Toasts from "./Toasts";
-import NotificationBell from "./Notificationbell";
+import NotificationBell from "./NotificationBell";
 import GlobalSearch from "./GlobalSearch";
 
-const NAV = [
-  { to: "/",         label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/tickets",  label: "Tickets",   icon: Inbox },
-  { to: "/people",   label: "People",    icon: Users },
-  { to: "/settings", label: "Settings",  icon: Settings },
+const ALL = ["admin", "agent", "requester"];
+const NAV_GROUPS = [
+  { label: "Work", items: [
+    { to: "/",        label: "Dashboard", icon: LayoutDashboard, end: true, roles: ALL },
+    { to: "/tickets", label: "Tickets",   icon: Inbox,                      roles: ALL },
+    { to: "/reports", label: "Reports",   icon: BarChart3,                  roles: ["admin", "agent"] },
+  ]},
+  { label: "Workspace", items: [
+    { to: "/people",   label: "People",       icon: Users,    roles: ["admin", "agent"] },
+    { to: "/sla",      label: "SLA policies", icon: Timer,    roles: ["admin"] },
+    { to: "/settings", label: "Settings",     icon: Settings, roles: ALL },
+  ]},
 ];
 
-
+// Square icon-button shared by the topbar controls. Note: NO `display` here —
+// the flex/centering comes from classes, so responsive classes like md:hidden
+// can still take effect (inline display would override them).
 const iconBtn = {
   width: 38, height: 38, borderRadius: 10, border: `1px solid ${C.line}`,
   background: C.surface, cursor: "pointer", color: C.inkSoft, flexShrink: 0,
@@ -30,6 +39,7 @@ const iconBtn = {
 // Sidebar contents shared by the desktop rail and the mobile drawer.
 function SidebarInner({ user, signOut, onNavigate }) {
   const connected = useRealtimeStatus();
+  const role = (user?.role || "").toLowerCase();
   return (
     <>
       <div className="flex items-center gap-2" style={{ padding: "4px 8px 18px" }}>
@@ -40,19 +50,32 @@ function SidebarInner({ user, signOut, onNavigate }) {
         <span style={{ ...display, fontSize: 18, fontWeight: 600 }}>Triage</span>
       </div>
 
-      <nav className="flex flex-col gap-1" style={{ flex: 1 }}>
-        {NAV.map(({ to, label, icon: Icon, end }) => (
-          <NavLink key={to} to={to} end={end} onClick={onNavigate} className="flex items-center gap-3 press"
-            style={({ isActive }) => ({
-              padding: "10px 12px", borderRadius: 10, textDecoration: "none",
-              background: isActive ? C.brandSoft : "transparent",
-              color: isActive ? C.brandDark : C.inkSoft,
-              fontSize: 14.5, fontWeight: isActive ? 600 : 500, ...body,
-            })}
-          >
-            <Icon size={18} /> {label}
-          </NavLink>
-        ))}
+      <nav className="flex flex-col" style={{ flex: 1, gap: 2 }}>
+        {NAV_GROUPS.map((group) => {
+          const items = group.items.filter((it) => !role || it.roles.includes(role));
+          if (items.length === 0) return null;
+          return (
+            <div key={group.label} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: C.inkFaint, padding: "8px 12px 6px" }}>
+                {group.label}
+              </div>
+              <div className="flex flex-col" style={{ gap: 2 }}>
+                {items.map(({ to, label, icon: Icon, end }) => (
+                  <NavLink key={to} to={to} end={end} onClick={onNavigate} className="flex items-center gap-3 press"
+                    style={({ isActive }) => ({
+                      padding: "9px 12px", borderRadius: 10, textDecoration: "none",
+                      background: isActive ? C.brandSoft : "transparent",
+                      color: isActive ? C.brandDark : C.inkSoft,
+                      fontSize: 14.5, fontWeight: isActive ? 600 : 500, ...body,
+                    })}
+                  >
+                    <Icon size={18} /> {label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="flex items-center gap-3"
@@ -97,11 +120,13 @@ export default function AppLayout() {
 
   return (
     <div className="flex" style={{ minHeight: "100vh", background: C.bg, ...body, color: C.ink }}>
+      {/* Desktop sidebar — hidden on mobile, flex column on md+ */}
       <aside className="hidden md:flex flex-col"
              style={{ width: 232, background: C.surface, borderRight: `1px solid ${C.line}`, padding: "20px 14px" }}>
         <SidebarInner user={user} signOut={signOut} />
       </aside>
 
+      {/* Mobile drawer — only mounted when open, hidden on md+ */}
       {drawerOpen && (
         <div className="md:hidden" style={{ position: "fixed", inset: 0, zIndex: 60 }}>
           <div className="overlay-in" onClick={() => setDrawerOpen(false)}
@@ -115,10 +140,12 @@ export default function AppLayout() {
         </div>
       )}
 
+      {/* Main column */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header className="flex items-center justify-between"
                 style={{ padding: "14px 16px", background: C.surface, borderBottom: `1px solid ${C.line}`, gap: 12 }}>
           <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0 }}>
+            {/* Hamburger — flex/centering via classes so md:hidden can hide it on desktop */}
             <button onClick={() => setDrawerOpen(true)}
                     className="md:hidden flex items-center justify-center press"
                     style={iconBtn}>
@@ -140,7 +167,10 @@ export default function AppLayout() {
           </div>
         </header>
 
-        <div key={location.pathname} style={{ flex: 1, padding: "clamp(16px, 4vw, 28px)", overflow: "auto" }}>
+        {/* key on pathname re-triggers the fade on route change */}
+        {/* key by section (first path segment) so navigating between tickets
+            within the workspace doesn't remount the list pane */}
+        <div key={location.pathname.split("/")[1] || "home"} style={{ flex: 1, padding: "clamp(16px, 4vw, 28px)", overflow: "auto" }}>
           <div className="fade-in"><Outlet /></div>
         </div>
       </main>

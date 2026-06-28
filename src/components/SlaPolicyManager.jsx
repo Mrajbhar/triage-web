@@ -57,13 +57,7 @@ export default function SlaPolicyManager() {
   };
 
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden", marginBottom: 22, maxWidth: 560 }}>
-      <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.lineSoft}` }}>
-        <h2 style={{ ...display, fontSize: 16, fontWeight: 600 }}>SLA policies</h2>
-        <p style={{ fontSize: 12.5, color: C.inkFaint, marginTop: 2 }}>
-          New tickets get a deadline based on your shortest policy's resolve time.
-        </p>
-      </div>
+    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden", maxWidth: 620 }}>
 
       {state === "loading" && <div style={{ padding: "18px 20px", color: C.inkFaint, fontSize: 14 }}>Loading…</div>}
       {state === "error" && <div style={{ padding: "18px 20px", color: C.danger, fontSize: 14 }}>Couldn't load policies.</div>}

@@ -20,8 +20,9 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function TicketDetail() {
-  const { id } = useParams();
+export default function TicketDetail({ id: propId, embedded = false }) {
+  const params = useParams();
+  const id = propId ?? params.id;
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -88,15 +89,16 @@ export default function TicketDetail() {
   const sla = slaInfo(ticket);
 
   return (
-    <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-      <button onClick={() => navigate("/tickets")} className="flex items-center gap-2 press"
+    <div style={embedded ? undefined : { maxWidth: 1080, margin: "0 auto" }}>
+      <button onClick={() => navigate("/tickets")}
+              className={`flex items-center gap-2 press ${embedded ? "lg:hidden" : ""}`}
               style={{ border: "none", background: "transparent", color: C.inkSoft, fontSize: 14, cursor: "pointer", marginBottom: 16, ...body }}>
         <ArrowLeft size={16} /> Back to tickets
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         {/* Left: header + activity + composer */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           {/* Header card */}
           <div style={{ position: "relative", overflow: "hidden", background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 24, marginBottom: 20 }}>
             <div aria-hidden style={{ position: "absolute", top: -30, right: -30, width: 110, height: 110, borderRadius: "50%", background: sla.breaching ? "#DC2626" : C.brand, opacity: 0.07 }} />

@@ -338,6 +338,10 @@ Email: `requester@demo.com`
 
 Password: `Demo@123`
 
+Email: `Requester2@gmail.com`
+
+Password: `123456`
+
 The Requester account can:
 
 * Create support tickets

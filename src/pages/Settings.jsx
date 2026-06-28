@@ -1,7 +1,6 @@
 import { Building2, UserCircle, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { C, display, body } from "../theme";
-import SlaPolicyManager from "../components/SlaPolicyManager";
 
 function Row({ label, value, mono }) {
   return (
@@ -30,7 +29,6 @@ function Card({ icon: Icon, title, children }) {
 
 export default function Settings() {
   const { user, signOut } = useAuth();
-  const isAdmin = (user?.role || "").toLowerCase() === "admin";
 
   return (
     <div style={{ maxWidth: 760 }}>
@@ -54,8 +52,6 @@ export default function Settings() {
           </div>
         </Card>
       </div>
-
-      {isAdmin && <div style={{ marginBottom: 18 }}><SlaPolicyManager /></div>}
 
       {/* Danger zone */}
       <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18 }}>
